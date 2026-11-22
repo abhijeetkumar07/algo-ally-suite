@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: algoally_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: algoally
+      POSTGRES_USER: algoally
+      POSTGRES_PASSWORD: algoally_secure_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U algoally"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: algoally_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/algoally
+      SPRING_DATASOURCE_USERNAME: algoally
+      SPRING_DATASOURCE_PASSWORD: algoally_secure_pass
+      JWT_SECRET: algoally_pro_jwt_secure_persistent_secret_key_2026_super_secret_for_prod
+      AI_SERVICE_URL: http://ai-service:8000
+    ports:
+      - "8081:8081"
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: algoally_ai_service
+    restart: always
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./algo-ally-suite-main
+      dockerfile: Dockerfile
+    container_name: algoally_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:

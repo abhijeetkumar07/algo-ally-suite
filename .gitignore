@@ -50,3 +50,13 @@ Thumbs.db
 
 # Databases
 backend/data/
+*.mv.db
+*.trace.db
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+

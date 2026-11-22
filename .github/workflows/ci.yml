@@ -1,0 +1,63 @@
+name: Algo Ally Pro CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-test:
+    name: Backend Tests & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build and Test Backend
+        working-directory: ./backend
+        run: mvn clean test
+
+  ai-service-test:
+    name: AI Service Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./ai-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run Pytest
+        working-directory: ./ai-service
+        run: pytest tests/
+
+  frontend-test:
+    name: Frontend Tests & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './algo-ally-suite-main/package-lock.json'
+      - name: Install dependencies
+        working-directory: ./algo-ally-suite-main
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+      - name: Run Vitest
+        working-directory: ./algo-ally-suite-main
+        run: npm test
+      - name: Build Frontend
+        working-directory: ./algo-ally-suite-main
+        run: npm run build

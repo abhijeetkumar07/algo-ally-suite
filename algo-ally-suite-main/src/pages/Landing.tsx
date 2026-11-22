@@ -1,117 +1,165 @@
+import React from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Code2, BarChart3, Brain, Zap, ArrowRight } from "lucide-react";
+import {
+  Code2, Bot, Users, Route, ArrowRight, Play, CheckCircle2,
+  Sparkles, Terminal, Flame, Target, Laptop
+} from "lucide-react";
 
-const features = [
-  { icon: Code2, title: "Java Master Suite", desc: "Native Java implementations for every algorithm and problem" },
-  { icon: BarChart3, title: "Smart Analytics", desc: "Visualize your preparation journey with detailed charts" },
-  { icon: Brain, title: "AI Recommendations", desc: "Get personalized topic suggestions based on your level" },
-  { icon: Zap, title: "Java Visualizers", desc: "Interactive pathfinding with real-time Java code generation" },
-];
+export const Landing = () => {
+  const navigate = useNavigate();
 
-const Landing = () => {
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
-        <motion.h1
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-2xl font-display font-bold text-gradient"
-        >
-          PlacementGPT
-        </motion.h1>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex gap-3"
-        >
-          <Link to="/auth">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-              Login
-            </Button>
-          </Link>
-          <Link to="/auth?mode=register">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Get Started
-            </Button>
-          </Link>
-        </motion.div>
-      </nav>
+    <div className="min-h-screen bg-slate-950 text-foreground selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+      {/* Background Gradient Blurs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Hero */}
-      <section className="max-w-7xl mx-auto px-6 pt-20 pb-32">
-        <div className="text-center max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20 mb-6">
-              🚀 Your Ultimate Prep Companion
+      {/* Navigation */}
+      <header className="border-b border-border/40 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
+              <span className="text-white font-black text-lg tracking-tighter">A</span>
+            </div>
+            <span className="font-display font-bold text-lg tracking-tight text-white flex items-center gap-1.5">
+              Algo Ally <span className="text-indigo-400 font-extrabold text-sm">Pro</span>
             </span>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#dsa" className="hover:text-white transition-colors">DSA</a>
+            <a href="#mock-interview" className="hover:text-white transition-colors">Mock Interview</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            <a href="#resources" className="hover:text-white transition-colors">Resources</a>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Link to="/auth">
+              <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white">
+                Log in
+              </Button>
+            </Link>
+            <Link to="/auth?mode=register">
+              <Button size="sm" className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl px-4 shadow-md shadow-indigo-600/30">
+                Get Started Free
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="max-w-7xl mx-auto px-6 pt-16 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="lg:col-span-7 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>AI-Powered Technical Interview Ecosystem</span>
           </motion.div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-5xl md:text-7xl font-display font-bold leading-tight mb-6"
+            transition={{ delay: 0.1 }}
+            className="text-4xl sm:text-6xl font-display font-black tracking-tight text-white leading-tight"
           >
-            Crack Your
-            <span className="text-gradient"> Dream Role</span>
-          </motion.h2>
+            Learn Smarter. <br />
+            Code Better. <br />
+            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Get Placement Ready.
+            </span>
+          </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+            transition={{ delay: 0.2 }}
+            className="text-slate-400 text-sm md:text-base max-w-xl leading-relaxed"
           >
-            AI-powered preparation platform that tracks your DSA progress,
-            analyzes your strengths, and recommends what to study next.
+            An AI-powered platform to master DSA, practice coding in an isolated judge,
+            receive multi-level AI explanations, practice live mock interviews, and track your
+            true placement readiness — all in one ecosystem.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap items-center gap-3 pt-2"
           >
             <Link to="/auth?mode=register">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 shadow-glow animate-pulse-glow">
-                Start Preparing <ArrowRight className="ml-2 h-5 w-5" />
+              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl px-6 h-11 shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                Get Started Free <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/dashboard")}
+              className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-sm rounded-xl px-5 h-11 flex items-center gap-2"
+            >
+              <Play className="h-3.5 w-3.5 text-indigo-400" /> Watch Demo
+            </Button>
+          </motion.div>
+
+          {/* Feature Badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-6 border-t border-border/40 text-xs text-slate-300 font-medium"
+          >
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/40 border border-border/40">
+              <Bot className="h-4 w-4 text-indigo-400 shrink-0" />
+              <span>AI DSA Tutor</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/40 border border-border/40">
+              <Code2 className="h-4 w-4 text-purple-400 shrink-0" />
+              <span>Coding Judge</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/40 border border-border/40">
+              <Users className="h-4 w-4 text-pink-400 shrink-0" />
+              <span>Mock Interviews</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/40 border border-border/40">
+              <Route className="h-4 w-4 text-emerald-400 shrink-0" />
+              <span>Personalized Roadmap</span>
+            </div>
           </motion.div>
         </div>
-      </section>
 
-      {/* Features */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 + i * 0.1 }}
-              className="glass rounded-xl p-6 hover:shadow-glow transition-all duration-300 group"
-            >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <f.icon className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-display font-semibold text-lg mb-2 text-foreground">{f.title}</h3>
-              <p className="text-sm text-muted-foreground">{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
+        {/* Laptop Preview Graphic */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-5 relative"
+        >
+          <div className="rounded-2xl border border-indigo-500/30 bg-slate-900/80 p-3 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl">
+            <div className="flex items-center gap-1.5 pb-2 px-1 border-b border-border/40">
+              <span className="h-2.5 w-2.5 rounded-full bg-rose-500/80"></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80"></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></span>
+              <span className="text-[10px] text-slate-500 font-mono ml-2">algoally-pro/workspace</span>
+            </div>
+            <div className="p-4 bg-slate-950 rounded-xl mt-2 font-mono text-[11px] text-slate-300 space-y-1">
+              <div className="text-indigo-400">// Ready for placement interview</div>
+              <div><span className="text-purple-400">class</span> <span className="text-emerald-400">Candidate</span> &#123;</div>
+              <div className="pl-4 text-slate-400">mastery: <span className="text-amber-400">"82% Placement Ready"</span>,</div>
+              <div className="pl-4 text-slate-400">problemsSolved: <span className="text-indigo-300">482</span>,</div>
+              <div className="pl-4 text-slate-400">streak: <span className="text-amber-300">16</span>,</div>
+              <div className="pl-4 text-slate-400">interviewReady: <span className="text-emerald-400">true</span></div>
+              <div>&#125;</div>
+            </div>
+          </div>
+        </motion.div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8 text-center text-sm text-muted-foreground">
-        <p>© 2026 PlacementGPT. Built for students, by students.</p>
-      </footer>
     </div>
   );
 };
