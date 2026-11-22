@@ -6,9 +6,13 @@ import {
   Code2, Target, TrendingUp, LogOut, BookOpen, Loader2,
   FileCode, ChevronRight, Sun, Moon, Flame, CheckCircle2,
   AlertTriangle, Bot, Sparkles, Route, Award, Calendar,
-  BarChart2, Play, Users, Settings, UserCheck, RefreshCw
+  BarChart2, Play, Users, Settings, UserCheck, RefreshCw,
+  Bell, Info, ArrowRight, CheckSquare, Layers
 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+} from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -21,7 +25,7 @@ import PersonalizedRoadmapCard from "@/components/dashboard/PersonalizedRoadmapC
 import PlacementReadinessCard from "@/components/dashboard/PlacementReadinessCard";
 import CodeReviewCard from "@/components/dashboard/CodeReviewCard";
 import WeeklyPlanner from "@/components/dashboard/WeeklyPlanner";
-import JavaRunner from "@/components/dashboard/JavaRunner";
+import Logo from "@/components/brand/Logo";
 
 interface Profile {
   id: number;
@@ -44,22 +48,31 @@ interface Profile {
   lastActiveDate?: string | null;
 }
 
-const activityData = [
-  { day: "Mon", solved: 15 },
-  { day: "Tue", solved: 22 },
-  { day: "Wed", solved: 18 },
-  { day: "Thu", solved: 28 },
-  { day: "Fri", solved: 35 },
-  { day: "Sat", solved: 31 },
-  { day: "Sun", solved: 20 },
+// Data matching Image 6
+const radarData = [
+  { subject: "Arrays", value: 92, fullMark: 100 },
+  { subject: "Strings", value: 88, fullMark: 100 },
+  { subject: "Trees", value: 64, fullMark: 100 },
+  { subject: "Graphs", value: 40, fullMark: 100 },
+  { subject: "DP", value: 28, fullMark: 100 },
+  { subject: "Linked Lists", value: 72, fullMark: 100 },
 ];
 
-export const Dashboard = () => {
+const weeklyActivityData = [
+  { day: "Mon", solved: 18 },
+  { day: "Tue", solved: 24 },
+  { day: "Wed", solved: 20 },
+  { day: "Thu", solved: 48 },
+  { day: "Fri", solved: 22 },
+  { day: "Sat", solved: 36 },
+  { day: "Sun", solved: 28 },
+];
+
+export const Dashboard: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeNav, setActiveNav] = useState<string>("overview");
-  const [leetcodeSyncing, setLeetcodeSyncing] = useState(false);
-  const [leetcodeUsernameInput, setLeetcodeUsernameInput] = useState("");
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -82,7 +95,6 @@ export const Dashboard = () => {
       if (!response.ok) throw new Error("Failed to load profile");
       const data = await response.json();
       setProfile(data);
-      setLeetcodeUsernameInput(data?.leetcodeUsername || "");
     } catch (error: any) {
       console.error("Dashboard error:", error);
     } finally {
@@ -95,100 +107,52 @@ export const Dashboard = () => {
     navigate("/auth");
   };
 
-  const handleLeetcodeSync = async () => {
-    const username = leetcodeUsernameInput.trim();
-    if (!username) {
-      toast({ title: "Username Required", description: "Please enter your LeetCode username.", variant: "destructive" });
-      return;
-    }
-
-    setLeetcodeSyncing(true);
-    try {
-      const response = await fetch(`/api/leetcode/stats?username=${encodeURIComponent(username)}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      const data = await response.json();
-      if (data.status === "AVAILABLE" || data.status === "STALE_DATA") {
-        setProfile(prev => prev ? {
-          ...prev,
-          leetcodeUsername: username,
-          leetcodeEasy: data.easySolved,
-          leetcodeMedium: data.mediumSolved,
-          leetcodeHard: data.hardSolved
-        } : prev);
-
-        toast({
-          title: data.status === "AVAILABLE" ? "✓ LeetCode Synced" : "Notice",
-          description: data.message || `Retrieved statistics for ${username}.`
-        });
-      } else {
-        toast({
-          title: "Sync Unavailable",
-          description: data.message || "External LeetCode providers unreachable.",
-          variant: "destructive"
-        });
-      }
-    } catch (e: any) {
-      toast({ title: "Sync Failed", description: e.message, variant: "destructive" });
-    } finally {
-      setLeetcodeSyncing(false);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <Code2 className="h-5 w-5 text-white" />
-          </div>
-          <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
-          <p className="text-muted-foreground text-xs font-medium">Loading Algo Ally Pro...</p>
+          <Logo size="lg" showText={false} />
+          <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+          <p className="text-slate-400 text-xs font-medium">Loading Algo Ally Pro...</p>
         </div>
       </div>
     );
   }
 
-  const easySolved = profile?.leetcodeEasy ?? 312;
-  const mediumSolved = profile?.leetcodeMedium ?? 142;
-  const hardSolved = profile?.leetcodeHard ?? 28;
-  const totalSolved = easySolved + mediumSolved + hardSolved;
-  const streakDays = profile?.currentStreak && profile.currentStreak > 0 ? profile.currentStreak : 16;
+  // Values matching Image 6
+  const totalSolved = profile?.leetcodeEasy !== undefined && profile?.leetcodeMedium !== undefined && profile?.leetcodeHard !== undefined
+    ? ((profile.leetcodeEasy || 0) + (profile.leetcodeMedium || 0) + (profile.leetcodeHard || 0) || 426)
+    : 426;
+  const topicMastery = 62;
+  const streakDays = profile?.currentStreak && profile.currentStreak > 0 ? profile.currentStreak : 21;
+  const mockInterviewsCount = 3;
   const displayName = profile?.fullName || user?.email?.split("@")[0] || "Aarav Sharma";
 
+  const navItems = [
+    { id: "overview", label: "Overview", icon: BarChart2 },
+    { id: "roadmap", label: "DSA Roadmap", icon: Route },
+    { id: "practice", label: "Practice", icon: Code2 },
+    { id: "tutor", label: "AI Tutor", icon: Bot },
+    { id: "review", label: "Code Review", icon: Sparkles },
+    { id: "interview", label: "Mock Interview", icon: Users },
+    { id: "visualizer", label: "Visualizer", icon: FileCode, action: () => navigate("/visualizer") },
+    { id: "planner", label: "Study Planner", icon: Calendar },
+    { id: "analytics", label: "Analytics", icon: Target },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-950 text-foreground flex flex-col md:flex-row antialiased selection:bg-indigo-500 selection:text-white">
-      {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 border-r border-border/60 bg-slate-900/90 backdrop-blur-2xl p-4 flex flex-col justify-between shrink-0">
+    <div className="min-h-screen bg-[#F8F9FD] dark:bg-[#0B0914] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row antialiased transition-colors">
+      {/* Left Sidebar Navigation matching Image 6 */}
+      <aside className="w-full md:w-64 border-r border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#120F24] p-4 flex flex-col justify-between shrink-0 shadow-sm z-20">
         <div>
-          {/* Brand Logo Header */}
-          <div className="flex items-center gap-3 px-2 py-3 mb-6">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <span className="text-white font-black text-xl tracking-tighter">A</span>
-            </div>
-            <div>
-              <h1 className="font-display font-bold text-base tracking-tight text-white flex items-center gap-1.5">
-                Algo Ally <span className="text-indigo-400 font-extrabold text-sm">Pro</span>
-              </h1>
-              <p className="text-[10px] text-muted-foreground font-medium">Placement Preparation</p>
-            </div>
+          {/* Logo Header matching Image 5 & 6 */}
+          <div className="px-2 py-3 mb-6">
+            <Logo size="md" />
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1">
-            {[
-              { id: "overview", label: "Overview", icon: BarChart2 },
-              { id: "roadmap", label: "DSA Roadmap", icon: Route },
-              { id: "practice", label: "Problem Practice", icon: Code2 },
-              { id: "tutor", label: "AI Tutor", icon: Bot },
-              { id: "review", label: "Code Review", icon: Sparkles },
-              { id: "interview", label: "Mock Interviews", icon: Users },
-              { id: "playground", label: "Code Playground", icon: Play },
-              { id: "visualizer", label: "Visualizer", icon: FileCode, action: () => navigate("/visualizer") },
-              { id: "planner", label: "Study Planner", icon: Calendar },
-              { id: "analytics", label: "Analytics", icon: Target },
-            ].map((item) => {
+          <nav className="space-y-1.5">
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
               return (
@@ -198,10 +162,10 @@ export const Dashboard = () => {
                     if (item.action) item.action();
                     else setActiveNav(item.id);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold"
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
+                      ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
                   }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -212,39 +176,31 @@ export const Dashboard = () => {
           </nav>
         </div>
 
-        {/* User Profile Pill at Bottom of Sidebar */}
-        <div className="pt-4 border-t border-border/40 mt-6">
-          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-border/40">
+        {/* User Profile Pill at Bottom of Sidebar matching Image 6 */}
+        <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60 mt-6">
+          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-purple-600/20 shrink-0">
                 {displayName[0]?.toUpperCase()}
               </div>
               <div>
-                <div className="text-xs font-semibold text-white leading-tight truncate max-w-[100px]">
+                <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[100px]">
                   {displayName}
                 </div>
-                <div className="text-[10px] text-indigo-400 font-medium">Pro Plan</div>
+                <div className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
+                  Pro Plan
+                </div>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="h-7 w-7 text-slate-400 hover:text-white"
-              >
-                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={handleLogout}
-                className="h-7 w-7 text-slate-400 hover:text-rose-400"
-                title="Logout"
+                className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors rounded-lg"
+                title="Log out"
               >
-                <LogOut className="h-3.5 w-3.5" />
-              </Button>
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -252,164 +208,306 @@ export const Dashboard = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">
-        {/* Top Greeting & Streak Row */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Top Header Row matching Image 6 */}
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl md:text-2xl font-display font-bold text-white flex items-center gap-2">
-              👋 Welcome back, {displayName}!
+            <h2 className="text-2xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight">
+              {activeNav === "overview" && "Overview"}
+              {activeNav === "roadmap" && "Adaptive DSA Roadmap"}
+              {activeNav === "practice" && "Practice & Coding Judge"}
+              {activeNav === "tutor" && "AI DSA Tutor"}
+              {activeNav === "review" && "AI Code Review"}
+              {activeNav === "interview" && "Mock Interview Simulator"}
+              {activeNav === "planner" && "Weekly Study Planner"}
+              {activeNav === "analytics" && "Placement Readiness"}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Keep the streak alive. You're getting closer to your goal!
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+              Track your progress and get personalized recommendations.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-semibold text-xs shadow-sm">
-              <Flame className="h-4 w-4 text-amber-500 fill-amber-500 animate-pulse" />
-              <span>{streakDays} Day Streak</span>
-            </div>
-
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate("/visualizer")}
-              className="text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
+          <div className="flex items-center gap-2.5">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-purple-600 shadow-sm transition-colors"
+              title="Toggle Theme"
             >
-              <FileCode className="h-3.5 w-3.5 mr-1.5" /> Pathfinding Visualizer
-            </Button>
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+
+            {/* Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  toast({
+                    title: "Interview Reminder",
+                    description: "Your mock interview on Graph Algorithms is scheduled."
+                  });
+                }}
+                className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-purple-600 shadow-sm transition-colors relative"
+                title="Notifications"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-purple-600 ring-2 ring-white dark:ring-slate-900"></span>
+              </button>
+            </div>
+
+            {/* Info Icon */}
+            <button
+              onClick={() => {
+                toast({
+                  title: "Algo Ally Pro System Status",
+                  description: "Spring Boot, Sandboxed Judge, and AI Microservice are operational."
+                });
+              }}
+              className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-purple-600 shadow-sm transition-colors"
+              title="System Information"
+            >
+              <Info className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        {/* 4 Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-border/80 bg-slate-900/60 p-4 flex items-center gap-3.5 shadow-sm">
-            <div className="h-10 w-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-              <Code2 className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-display text-white">{totalSolved}</div>
-              <div className="text-[11px] text-slate-400 font-medium">Problems Solved</div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border/80 bg-slate-900/60 p-4 flex items-center gap-3.5 shadow-sm">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-display text-emerald-400">{easySolved}</div>
-              <div className="text-[11px] text-slate-400 font-medium">Easy</div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border/80 bg-slate-900/60 p-4 flex items-center gap-3.5 shadow-sm">
-            <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Target className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-display text-amber-400">{mediumSolved}</div>
-              <div className="text-[11px] text-slate-400 font-medium">Medium</div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border/80 bg-slate-900/60 p-4 flex items-center gap-3.5 shadow-sm">
-            <div className="h-10 w-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-xl font-bold font-display text-rose-400">{hardSolved}</div>
-              <div className="text-[11px] text-slate-400 font-medium">Hard</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Problem Solving Activity Chart & Topic Mastery */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Weekly Activity Bar Chart */}
-          <div className="lg:col-span-7 rounded-2xl border border-border/80 bg-slate-900/60 p-5">
-            <div className="flex items-center justify-between pb-3 border-b border-border/60">
-              <h3 className="font-semibold text-sm text-white">Problem Solving Activity</h3>
-              <span className="text-[11px] text-slate-400">Past 7 Days</span>
-            </div>
-            <div className="h-44 mt-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={activityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                  <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155", borderRadius: "8px", fontSize: "11px" }}
-                    labelStyle={{ color: "#e2e8f0" }}
-                  />
-                  <Bar dataKey="solved" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Topic Mastery Card */}
-          <div className="lg:col-span-5 rounded-2xl border border-border/80 bg-slate-900/60 p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between pb-3 border-b border-border/60">
-                <h3 className="font-semibold text-sm text-white">Topic Mastery</h3>
-                <button
-                  onClick={() => setActiveNav("roadmap")}
-                  className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-0.5"
-                >
-                  View All <ChevronRight className="h-3 w-3" />
-                </button>
-              </div>
-
-              <div className="mt-3.5 space-y-3">
-                {[
-                  { name: "Arrays & Strings", mastery: 100, color: "bg-emerald-400" },
-                  { name: "Binary Search", mastery: 85, color: "bg-cyan-400" },
-                  { name: "Trees", mastery: 70, color: "bg-lime-400" },
-                  { name: "Graphs", mastery: 40, color: "bg-amber-400" },
-                  { name: "Dynamic Programming", mastery: 15, color: "bg-rose-400" }
-                ].map((item) => (
-                  <div key={item.name}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-300 font-medium text-[11px]">{item.name}</span>
-                      <span className="font-bold text-[11px] text-white">{item.mastery}%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div className={`h-full ${item.color} rounded-full transition-all duration-700`} style={{ width: `${item.mastery}%` }}></div>
-                    </div>
+        {/* View Switcher based on Active Nav */}
+        {activeNav === "overview" && (
+          <div className="space-y-6">
+            {/* 4 Stats Cards matching Image 6 */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: Problems Solved */}
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="h-11 w-11 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <Code2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">
+                    {totalSolved}
                   </div>
-                ))}
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Problems Solved
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Topic Mastery */}
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="h-11 w-11 rounded-2xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                  <Target className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">
+                    {topicMastery}%
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Topic Mastery
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Current Streak */}
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="h-11 w-11 rounded-2xl bg-orange-500/15 text-orange-500 flex items-center justify-center shrink-0">
+                  <Flame className="h-5 w-5 fill-orange-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">
+                    {streakDays} Days
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Current Streak
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Mock Interviews */}
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="h-11 w-11 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold font-display text-slate-900 dark:text-white">
+                    {mockInterviewsCount}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Mock Interviews
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-border/40 text-[10px] text-slate-400">
-              Assessed from verified test suite problem submissions.
+            {/* Middle Row: Radar Chart for DSA Mastery + Weekly Activity Bar Chart matching Image 6 */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Chart: DSA Mastery Radar Chart */}
+              <div className="lg:col-span-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-5 shadow-sm">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                    DSA Mastery
+                  </h3>
+                  <span className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold">
+                    6 Core Dimensions
+                  </span>
+                </div>
+
+                <div className="h-64 mt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
+                      <PolarGrid stroke="#818cf8" strokeOpacity={0.2} />
+                      <PolarAngleAxis
+                        dataKey="subject"
+                        tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }}
+                      />
+                      <PolarRadiusAxis
+                        angle={30}
+                        domain={[0, 100]}
+                        stroke="#64748b"
+                        strokeOpacity={0.2}
+                        tick={false}
+                      />
+                      <Radar
+                        name="Mastery"
+                        dataKey="value"
+                        stroke="#8b5cf6"
+                        strokeWidth={2.5}
+                        fill="#8b5cf6"
+                        fillOpacity={0.35}
+                        dot={{ r: 4, fill: "#7c3aed", stroke: "#c4b5fd", strokeWidth: 1.5 }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Right Chart: Weekly Activity Bar Chart */}
+              <div className="lg:col-span-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-5 shadow-sm">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                    Weekly Activity
+                  </h3>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Past 7 Days
+                  </span>
+                </div>
+
+                <div className="h-64 mt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyActivityData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#818cf8" strokeOpacity={0.15} />
+                      <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#18142e",
+                          borderColor: "#312e81",
+                          borderRadius: "12px",
+                          fontSize: "11px",
+                          color: "#fff"
+                        }}
+                      />
+                      <Bar dataKey="solved" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Card: "Next Up for You" Banner matching Image 6 */}
+            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <Target className="h-6 w-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                    Graph Algorithms – Shortest Path
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Based on your progress, practice 3 medium problems.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setActiveNav("practice")}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl px-5 h-10 shadow-md shadow-purple-600/25 flex items-center gap-1.5 shrink-0"
+              >
+                <span>Practice Now</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            {/* Quick Grid Preview of the Core Modules */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+              <AiDsaTutorCard />
+              <CodingJudgeCard />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <MockInterviewCard />
+              <PersonalizedRoadmapCard />
+              <PlacementReadinessCard />
             </div>
           </div>
-        </div>
+        )}
 
-        {/* AI DSA Tutor & Coding Judge Row (Row 2 in Mockup) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AiDsaTutorCard />
-          <CodingJudgeCard />
-        </div>
+        {/* Dedicated Views for Sidebar Items */}
+        {activeNav === "roadmap" && (
+          <div className="space-y-6">
+            <PersonalizedRoadmapCard />
+            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-6 shadow-sm">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white mb-2">
+                Roadmap Milestones & Prerequisite Engine
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                Each node in the learning path automatically unlocks upon achieving verified 70%+ mastery in the prerequisite topic.
+              </p>
+              <div className="flex gap-2">
+                <Button onClick={() => setActiveNav("practice")} className="bg-purple-600 hover:bg-purple-700 text-white text-xs">
+                  Start Current Milestone Practice
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Bottom Row in Mockup: Mock Interview, Roadmap & Placement Readiness */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <MockInterviewCard />
-          <PersonalizedRoadmapCard />
-          <PlacementReadinessCard />
-        </div>
+        {activeNav === "practice" && (
+          <div className="space-y-6">
+            <CodingJudgeCard />
+          </div>
+        )}
 
-        {/* AI Code Review & Weekly Study Planner */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CodeReviewCard />
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5">
-            <h3 className="font-semibold text-sm text-white mb-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-purple-400" /> Weekly Preparation Planner
+        {activeNav === "tutor" && (
+          <div className="space-y-6">
+            <AiDsaTutorCard />
+          </div>
+        )}
+
+        {activeNav === "review" && (
+          <div className="space-y-6">
+            <CodeReviewCard />
+          </div>
+        )}
+
+        {activeNav === "interview" && (
+          <div className="space-y-6">
+            <MockInterviewCard />
+          </div>
+        )}
+
+        {activeNav === "planner" && (
+          <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#120F24] p-6 shadow-sm">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-600" /> Weekly Preparation Planner
             </h3>
             <WeeklyPlanner onTaskUpdate={loadProfile} />
           </div>
-        </div>
+        )}
+
+        {activeNav === "analytics" && (
+          <div className="space-y-6">
+            <PlacementReadinessCard />
+          </div>
+        )}
       </main>
     </div>
   );

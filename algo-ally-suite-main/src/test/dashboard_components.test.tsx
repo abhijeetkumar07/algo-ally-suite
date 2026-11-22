@@ -7,17 +7,18 @@ import { PersonalizedRoadmapCard } from "../components/dashboard/PersonalizedRoa
 import { AuthProvider } from "../contexts/AuthContext";
 
 describe("Algo Ally Pro Dashboard Components", () => {
-  it("renders AI DSA Tutor Card with Hint Mode toggle", () => {
+  it("renders AI DSA Tutor Card with Explanation Levels and Modes matching Image 2", () => {
     render(
       <AuthProvider>
         <AiDsaTutorCard />
       </AuthProvider>
     );
     expect(screen.getByText("AI DSA Tutor")).toBeInTheDocument();
-    expect(screen.getByText("Hint Mode")).toBeInTheDocument();
+    expect(screen.getByText("Hint-First")).toBeInTheDocument();
+    expect(screen.getByText("Intermediate")).toBeInTheDocument();
   });
 
-  it("renders Placement Readiness Card with 82% Ready score", () => {
+  it("renders Placement Readiness Card with Readiness Score matching Image 1", () => {
     render(
       <AuthProvider>
         <PlacementReadinessCard />
@@ -25,16 +26,17 @@ describe("Algo Ally Pro Dashboard Components", () => {
     );
     expect(screen.getByText("Placement Readiness")).toBeInTheDocument();
     expect(screen.getByText("DSA Mastery")).toBeInTheDocument();
-    expect(screen.getByText("Consistency")).toBeInTheDocument();
+    expect(screen.getByText("Study Consistency")).toBeInTheDocument();
+    expect(screen.getByText("Readiness Score")).toBeInTheDocument();
   });
 
-  it("renders Personalized DSA Roadmap Card with milestones", () => {
+  it("renders Adaptive DSA Roadmap Card with milestones matching Image 3", () => {
     render(
       <AuthProvider>
         <PersonalizedRoadmapCard />
       </AuthProvider>
     );
-    expect(screen.getByText("Your Personalized DSA Roadmap")).toBeInTheDocument();
+    expect(screen.getByText("Adaptive DSA Roadmap")).toBeInTheDocument();
     expect(screen.getByText("Arrays & Strings")).toBeInTheDocument();
     expect(screen.getByText("Binary Search")).toBeInTheDocument();
   });

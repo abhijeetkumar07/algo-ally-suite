@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Sparkles, Target } from "lucide-react";
+import { Trophy, CheckCircle, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface MetricItem {
+  id: string;
+  label: string;
+  value: number;
+}
+
 export const PlacementReadinessCard: React.FC = () => {
-  const [readinessScore, setReadinessScore] = useState<number>(82);
-  const [breakdown, setBreakdown] = useState<{
-    dsaMastery: number;
-    problemSolving: number;
-    mockInterview: number;
-    consistency: number;
-  }>({
-    dsaMastery: 78,
-    problemSolving: 85,
-    mockInterview: 80,
-    consistency: 88
-  });
+  const [readinessScore, setReadinessScore] = useState<number>(78);
+  const [metrics, setMetrics] = useState<MetricItem[]>([
+    { id: "dsa", label: "DSA Mastery", value: 72 },
+    { id: "problem_solving", label: "Problem Solving", value: 78 },
+    { id: "mock_interview", label: "Mock Interview Performance", value: 80 },
+    { id: "consistency", label: "Study Consistency", value: 85 }
+  ]);
 
   const { token } = useAuth();
 
@@ -31,109 +32,123 @@ export const PlacementReadinessCard: React.FC = () => {
       if (res.ok) {
         const data = await res.json();
         if (data.readinessScore) setReadinessScore(data.readinessScore);
-        if (data.breakdown) setBreakdown(data.breakdown);
+        if (data.breakdown) {
+          setMetrics([
+            { id: "dsa", label: "DSA Mastery", value: data.breakdown.dsaMastery ?? 72 },
+            { id: "problem_solving", label: "Problem Solving", value: data.breakdown.problemSolving ?? 78 },
+            { id: "mock_interview", label: "Mock Interview Performance", value: data.breakdown.mockInterview ?? 80 },
+            { id: "consistency", label: "Study Consistency", value: data.breakdown.consistency ?? 85 }
+          ]);
+        }
       }
     } catch (e) {
-      console.error(e);
+      console.error("Readiness fetch error:", e);
     }
   };
 
-  const radius = 38;
+  // Donut chart geometry
+  const radius = 54;
+  const strokeWidth = 14;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (readinessScore / 100) * circumference;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-xl p-5 shadow-xl flex flex-col justify-between h-full">
+    <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-6 shadow-xl transition-all hover:shadow-2xl flex flex-col justify-between">
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">
-              <Target className="h-4 w-4" />
-            </div>
-            <h3 className="font-semibold text-sm tracking-tight text-white">
+        {/* Header matching Image 1 */}
+        <div className="flex items-center gap-3.5 mb-6">
+          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-600/30 shrink-0">
+            <Trophy className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
               Placement Readiness
             </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+              Your overall preparation for technical interviews.
+            </p>
           </div>
         </div>
 
-        {/* Circular Donut + 4 Metrics */}
-        <div className="mt-4 flex items-center justify-between gap-4">
-          {/* Donut Chart Gauge */}
-          <div className="relative flex items-center justify-center w-28 h-28 shrink-0">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle
-                cx="56"
-                cy="56"
-                r={radius}
-                className="text-slate-800 stroke-current"
-                strokeWidth="7"
-                fill="transparent"
-              />
-              <circle
-                cx="56"
-                cy="56"
-                r={radius}
-                className="text-emerald-400 stroke-current transition-all duration-1000 ease-out"
-                strokeWidth="7"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                fill="transparent"
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className="text-2xl font-bold font-display text-white tracking-tight">
-                {readinessScore}%
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium">Ready</span>
+        {/* Donut Chart & 4 Metrics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          {/* Donut Gauge */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center py-2">
+            <div className="relative w-36 h-36 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
+                {/* Background Ring */}
+                <circle
+                  cx="70"
+                  cy="70"
+                  r={radius}
+                  className="stroke-slate-100 dark:stroke-slate-800"
+                  strokeWidth={strokeWidth}
+                  fill="transparent"
+                />
+                {/* Gradient Progress Ring */}
+                <circle
+                  cx="70"
+                  cy="70"
+                  r={radius}
+                  stroke="url(#readiness_gradient)"
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  fill="transparent"
+                  className="transition-all duration-1000 ease-out"
+                />
+                <defs>
+                  <linearGradient id="readiness_gradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#A855F7" />
+                    <stop offset="100%" stopColor="#4F46E5" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              {/* Centered Score */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-3xl font-extrabold font-display text-slate-900 dark:text-white tracking-tight leading-none">
+                  {readinessScore}%
+                </span>
+                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 mt-1">
+                  Readiness Score
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Metric Rows */}
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-2 text-slate-300 font-medium text-[11px]">
-                <span className="h-2 w-2 rounded-full bg-purple-500"></span> DSA Mastery
-              </span>
-              <span className="font-bold text-[11px] text-white">{breakdown.dsaMastery}%</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-2 text-slate-300 font-medium text-[11px]">
-                <span className="h-2 w-2 rounded-full bg-indigo-500"></span> Problem Solving
-              </span>
-              <span className="font-bold text-[11px] text-white">{breakdown.problemSolving}%</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-2 text-slate-300 font-medium text-[11px]">
-                <span className="h-2 w-2 rounded-full bg-purple-400"></span> Mock Interview
-              </span>
-              <span className="font-bold text-[11px] text-white">{breakdown.mockInterview}%</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-2 text-slate-300 font-medium text-[11px]">
-                <span className="h-2 w-2 rounded-full bg-emerald-400"></span> Consistency
-              </span>
-              <span className="font-bold text-[11px] text-white">{breakdown.consistency}%</span>
-            </div>
+          {/* 4 Metric Pill Cards */}
+          <div className="md:col-span-7 space-y-2.5">
+            {metrics.map((metric) => (
+              <div
+                key={metric.id}
+                className="flex items-center justify-between px-4 py-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-5 w-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <CheckCircle className="h-4 w-4 fill-emerald-500 text-white" />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    {metric.label}
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-slate-900 dark:text-white font-mono">
+                  {metric.value}%
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Next Action Callout Card matching screenshot */}
-      <div className="mt-4 p-3 bg-purple-950/40 border border-purple-800/60 rounded-xl flex items-center justify-between gap-3 text-xs group cursor-pointer hover:border-purple-600 transition-colors">
-        <div className="flex items-start gap-2.5">
-          <div className="h-6 w-6 rounded-md bg-purple-600/30 text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
-            <Sparkles className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <div className="font-semibold text-[11px] text-purple-200">Next Action</div>
-            <p className="text-[10px] text-slate-300 leading-snug mt-0.5">
-              Practice 3 Graph problems and take a mock interview this week to reach 85% readiness.
-            </p>
-          </div>
+      {/* Gold Alert Banner at Bottom matching Image 1 */}
+      <div className="mt-5 p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-300/50 dark:border-amber-500/30 flex items-center gap-3 shadow-sm">
+        <div className="h-8 w-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+          <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500" />
         </div>
-        <ArrowRight className="h-4 w-4 text-purple-400 shrink-0 group-hover:translate-x-1 transition-transform" />
+        <p className="text-xs text-amber-900 dark:text-amber-200 font-medium leading-relaxed">
+          You're on the right track! Focus on <strong className="font-semibold text-amber-950 dark:text-amber-100">Graphs</strong> and <strong className="font-semibold text-amber-950 dark:text-amber-100">Dynamic Programming</strong> to reach <strong className="font-semibold text-amber-950 dark:text-amber-100">90%+ readiness</strong>.
+        </p>
       </div>
     </div>
   );
